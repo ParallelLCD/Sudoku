@@ -7,15 +7,14 @@ namespace sudoku
 
         static void Main(string[] args)
         {
-            GenBoard gen1 = new GenBoard();
-            GenBoard gen2 = new GenBoard();
+            Board gen1 = new Board();
+            Board gen2 = new Board();
             int?[,] currentBoard = gen1.board;
             int?[,] nextBoard = gen2.board;
 
             bool check = false;
             bool checkOptions = false;
             bool checkPlaying = false;
-            bool checkValid = false;
             bool checkNewGame = false;
             bool confirmExit = false;
             bool checkGen = false;
@@ -32,16 +31,18 @@ namespace sudoku
 
                 do
                 {
-                    Console.WriteLine("Select a diffculty:\n[1]Easy [2]Medium [3]Hard");
+                    Console.WriteLine("Select a difficulty:\n[1]Easy [2]Medium [3]Hard");
                     check = false;
                     input = Console.ReadLine();
+
                     switch (input)
                     {
-                        case "1": gen1.diffculty(50); checkOptions = true; break;
-                        case "2": gen1.diffculty(60); checkOptions = true; break;
-                        case "3": gen1.diffculty(70); checkOptions = true; break;
+                        case "1": gen1.SetDifficulty(50); checkOptions = true; break;
+                        case "2": gen1.SetDifficulty(60); checkOptions = true; break;
+                        case "3": gen1.SetDifficulty(70); checkOptions = true; break;
                         default: Console.WriteLine("Enter a valid input"); checkOptions = false; break;
                     }
+
                 } while (!checkOptions);
 
 
@@ -58,55 +59,36 @@ namespace sudoku
                         gen1.PrintArray(currentBoard);
                         Console.WriteLine("[1]Insert Number [2]Generate New Board [3]Exit");
                         input = Console.ReadLine();
+
                         switch (input)
                         {
                             case "1": checkOptions = true; checkPlaying = true; break;
                             case "2": checkOptions = true; 
                                 Console.WriteLine("Are You Sure?(y/n)");
-                                if(nodInput()) { checkGen = true; checkOptions = true; }
+                                if(ConfirmYesOrNo()) { checkGen = true; checkOptions = true; }
                                 else { checkGen = false; checkOptions = true; }
                                 break;
                             case "3": checkOptions = true; confirmExit = true;  break;
                             default: Console.WriteLine("Enter a valid input"); checkOptions = false; break;
                         }
+
                     } while (!checkOptions);
 
 
                     if (checkPlaying)
                     {
 
-                        while (!checkValid)
-                        {
-                            Console.WriteLine("Enter a row:");
-                            input = ReadInput();
-                            gen1.row = Convert.ToInt32(input);
+                        currentBoard = gen1.InsertNum();
+                        
 
-                            Console.WriteLine("Enter a column:");
-                            input = ReadInput();
-                            gen1.col = Convert.ToInt32(input);
-
-                            if (gen1.CheckIfMoveIsValid(gen1.row - 1, gen1.col - 1)) { checkValid = true; }
-                        }
-                        checkValid = false;
-
-
-
-                        Console.WriteLine("Enter a number:");
-                        input = ReadInput();
-                        gen1.num = Convert.ToInt32(input);
-
-                        currentBoard[gen1.row - 1, gen1.col - 1] = gen1.num;
-
-
-
-                        if (gen1.CheckIfFull(currentBoard))
+                        if (gen1.IsBoardFull(currentBoard))
                         {
                             for (int i = 0; i < gen1.sq; i++)
                             {
                                 for (int j = 0; j < gen1.sq; j++)
                                 {
                                     int temp = currentBoard[i, j].Value;
-                                    if (gen1.RuleCheck(currentBoard, i, j, currentBoard[i, j].Value)) { counter++; }
+                                    if (gen1.DoesBoardUpholdRules(i, j, currentBoard[i, j].Value)) { counter++; }
                                     else { currentBoard[i, j] = temp; }
                                 }
                             }
@@ -117,14 +99,12 @@ namespace sudoku
                                 gen1.PrintArray(currentBoard);
                                 check = true;
                                 Console.WriteLine("Play Again?(y/n)");
-                                if (!nodInput()) { checkNewGame = true; }
+                                if (!ConfirmYesOrNo()) { checkNewGame = true; }
                                 else { checkGen = true; }
                             }
 
                             else
-                            {
                                 Console.WriteLine("Board isn't correct!\nPlease check again");
-                            }
                         }
 
 
@@ -133,14 +113,14 @@ namespace sudoku
                     else if (confirmExit)
                     {
                         Console.WriteLine("Are You Sure?(y/n)");
-                        if (nodInput()) { check = true; checkNewGame = true; }
+                        if (ConfirmYesOrNo()) { check = true; checkNewGame = true; }
                     }
 
                     if (checkGen)
                     {
                         gen1 = gen2;
                         currentBoard = nextBoard;
-                        gen2 = new GenBoard();
+                        gen2 = new Board();
                         nextBoard = gen2.board;
                         check = true;
                         checkGen = false;
@@ -155,7 +135,7 @@ namespace sudoku
 
 
 
-        static private bool nodInput()
+        static private bool ConfirmYesOrNo()
         {
             bool check;
             string input;
@@ -163,48 +143,13 @@ namespace sudoku
             do
             {
                 input = Console.ReadLine();
-                if (input == "y" || input == "Y") { check = true; return true; }
-                else if (input == "n" || input == "N") { check = true; return false; }
+                if (input == "y" || input == "Y") { return true; }
+                else if (input == "n" || input == "N") { return false; }
                 else { Console.WriteLine("Enter a valid input"); check = false; }
 
             } while (!check);
+
             return false;
-        }
-
-
-
-        static private string ReadInput()
-        {
-            bool move = false;
-            string input;
-
-            do
-            {
-                input = Console.ReadLine();
-                move = CheckInput(input);
-            } while (!move);
-
-            return input;
-        }
-        
-
-
-        static private bool CheckInput(string value)
-        {
-            int input;
-
-            if (!int.TryParse(value, out input))
-            {
-                Console.WriteLine("Input is not a number! (1-9):");
-                return false;
-            }
-            if (input > 9) 
-            {
-                Console.WriteLine("Enter a valid number! (1-9):");
-                return false;
-            }
-
-            return true;
         }
     }
 }
